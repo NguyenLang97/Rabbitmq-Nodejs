@@ -1,8 +1,8 @@
 // docker run -it -–rm -–name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3.10-management
 
 const express = require('express');
-const sendQueue = require('./queue/producer');
-const postMessageFanout = require('./pubsub/post');
+const sendMessageDirect = require('./direct/producer');
+const postMessageFanout = require('./fanout/post');
 const sendMessageTopic = require('./topic/send.mail');
 const sendMessageHeaders = require('./headers/headersPublisher');
 
@@ -11,12 +11,12 @@ app.use(express.json());
 
 const PORT = 3000;
 
-app.post('/send-to-queue', async (req, res) => {
+app.post('/send-direct-to-queue', async (req, res) => {
   const { message } = req.body;
   if (!message) return res.status(400).json({ error: 'Message is required' });
 
-  await sendQueue(message);
-  res.json({ success: `Message sent to queue: ${message}` });
+  await sendMessageDirect(message);
+  res.json({ success: `Message sent direct to queue: ${message}` });
 });
 app.post('/send-from-fanout-to-queue', async (req, res) => {
   const { message } = req.body;

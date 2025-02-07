@@ -3,10 +3,9 @@ const amqp_url_cloud = 'amqps://iwksjczm:ip6KO-Tx2DACmYXDub4hI0ISdUwF-_Qs@fuji.l
 const amqp_url_docker = 'amqp://localhost:5672'; // Changed to non-SSL
 
 const sendEmail = async (msgInput) => {
-  console.log('🚀  msgInput ==', msgInput);
   try {
     // 1. create Connect
-    const conn = await amqplib.connect(amqp_url_docker);
+    const conn = await amqplib.connect(amqp_url_cloud);
     // 2. create channel
     const channel = await conn.createChannel();
 
@@ -28,12 +27,6 @@ const sendEmail = async (msgInput) => {
 
     // 4.publish email
     await channel.publish(nameExchange, topic, Buffer.from(msg));
-    console.log('🚀  send OK ==', msg);
-
-    setTimeout(() => {
-      conn.close();
-      process.exit(0);
-    }, 2000);
   } catch (error) {
     console.log('🚀  error ==', error);
   }

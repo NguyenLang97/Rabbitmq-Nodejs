@@ -5,7 +5,7 @@ const amqp_url_docker = 'amqp://localhost:5672'; // Changed to non-SSL
 const receiveNoti = async () => {
   try {
     // 1. create Connect
-    const conn = await amqplib.connect(amqp_url_docker);
+    const conn = await amqplib.connect(amqp_url_cloud);
     // 2. create channel
     const channel = await conn.createChannel();
 
@@ -24,13 +24,21 @@ const receiveNoti = async () => {
 
     // 5. binding
     await channel.bindQueue(queue, nameExchange, '');
+    await channel.prefetch(1); // Giới hạn số lượng tin nhắn chưa được xác nhận mà consumer có thể nhận
     await channel.consume(
       queue,
       (msg) => {
-        console.log('🚀  msg ==', msg.content.toString());
+        if (msg !== null) {
+          console.log('Received:', msg.content.toString());
+          // Giả lập xử lý message mất thời gian
+          setTimeout(() => {
+            console.log('Done processing:', msg.content.toString());
+            channel.ack(msg); // Xác nhận sau khi xử lý xong
+          }, 2000); // 2 giây để xử lý
+        }
       },
       {
-        noAck: true,
+        noAck: false,
       }
     );
   } catch (error) {
@@ -38,6 +46,9 @@ const receiveNoti = async () => {
   }
 };
 
-const msg = process.argv.slice(2).join(' ') || 'Hello exchange';
-console.log('🚀  msg ==', msg);
-receiveNoti({ msg });
+// const msg = process.argv.slice(2).join(' ') || 'Hello exchange';
+// console.log('🚀  msg ==', msg);
+// receiveNoti({ msg });
+
+receiveNoti();
+// node receiveNoti.js

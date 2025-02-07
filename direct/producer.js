@@ -6,21 +6,28 @@ const amqp_url_docker = 'amqp://localhost:5672'; // Changed to non-SSL
 const sendQueue = async (msg) => {
   try {
     // 1. Create a connection
-    const conn = await amqplib.connect(amqp_url_docker);
+    const conn = await amqplib.connect(amqp_url_cloud);
 
     // 2. Create a channel
     const channel = await conn.createChannel();
 
-    // 3. Create name queue
-    const nameQueue = 'q2';
+    // 3. Create name exchange
+    const exchangeName = 'direct_logs';
+    const routingKey = 'info';
 
-    // 4. Create queue
-    await channel.assertQueue(nameQueue, { durable: true });
+    // 4. Khai báo exchange loại 'direct'
+    await channel.assertExchange(exchangeName, 'direct', { durable: true });
 
-    // 5. Send message to queue
-    await channel.sendToQueue(nameQueue, Buffer.from(msg), {
+    // 5. Gửi tin nhắn đến exchange
+    await channel.publish(exchangeName, routingKey, Buffer.from(msg), {
       persistent: true,
     });
+
+    console.log(" [x] Sent %s: '%s'", routingKey, msg);
+    // Đóng kết nối sau một khoảng thời gian
+    // setTimeout(() => {
+    //   conn.close();
+    // }, 500);
   } catch (error) {
     console.log('🚀  error ==', error);
   }

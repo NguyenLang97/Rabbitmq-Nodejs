@@ -6,7 +6,7 @@ const headersConsumer = async (expectedHeaders) => {
   console.log('🚀  expectedHeaders ==', expectedHeaders);
   try {
     // 1. create Connect
-    const conn = await amqplib.connect(amqp_url_docker);
+    const conn = await amqplib.connect(amqp_url_cloud);
     // 2. create channel
     const channel = await conn.createChannel();
 
@@ -22,7 +22,7 @@ const headersConsumer = async (expectedHeaders) => {
     // 4. bind queue to exchange
     await channel.bindQueue(queue, nameExchange, '', { 'x-match': 'all', ...expectedHeaders });
 
-    channel.consume(queue, (msg) => {
+    await channel.consume(queue, (msg) => {
       console.log('🚀  Message received ==', msg.content.toString());
       console.log('🚀  Headers ==', msg.properties.headers);
       channel.ack(msg);
